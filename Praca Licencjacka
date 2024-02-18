@@ -1,0 +1,55 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Instalacja i ładowanie pakietu
+if (!requireNamespace("VGAM", quietly = TRUE)) {
+  install.packages("VGAM")
+}
+library(VGAM)
+
+# Funkcja gęstości prawdopodobieństwa dla rozkładu normalnego
+normal_pdf <- function(x) {
+  return (dnorm(x))
+}
+
+# Stała ograniczająca (dobrana eksperymentalnie)
+M_normal <- 1.5
+
+# Funkcja generująca próbkę z dystrybucji ograniczającej (propozycji)
+generate_proposal_sample_normal <- function() {
+  return (runif(1, -3, 3))  # Przykładowa dystrybucja ograniczająca
+}
+
+# Funkcja generująca próbkę z metody accept-rejection
+accept_rejection_normal <- function(n) {
+  samples_normal <- numeric(n)
+  i <- 1
+  
+  while (i <= n) {
+    x_normal <- generate_proposal_sample_normal()
+    u_normal <- runif(1)
+    
+    if (u_normal <= normal_pdf(x_normal) / (M_normal * dunif(x_normal, -3, 3))) {
+      samples_normal[i] <- x_normal
+      i <- i + 1
+    }
+  }
+  
+  return (samples_normal)
+}
+
+# Wygenerowanie 1000 próbek z rozkładu normalnego przy użyciu metody accept-rejection
+set.seed(456)
+samples_normal <- accept_rejection_normal(1000)
+```
+
+```{r}
+# Histogram próbek
+hist(samples_normal, breaks = 30, main = "Histogram próbek z rozkładu normalnego z krzywą gęstości", col = "lightblue", border = "black", probability = TRUE)
+# Dodanie krzywej gęstości
+curve(dnorm(x), add = TRUE, col = "red", lwd = 2)
+
+# Q-Q Plot
+qqnorm(samples_normal)
+qqline(samples_normal)
+
+```
