@@ -119,43 +119,27 @@ ks.test(samples_envelope_normal, "pnorm")
 ```{r}
 shapiro.test(samples_envelope_normal)
 ```
-
-Metoda Monte Carlo
 ```{r}
-# Funkcja generująca próbki z rozkładu wykładniczego
-monte_carlo_exponential <- function(n, lambda) {
-  # Generujemy n próbek z rozkładu jednostajnego na przedziale [0, 1]
-  u <- runif(n)
-  
-  # Obliczamy próbki z rozkładu wykładniczego przy użyciu odwrotnej dystrybuanty
-  x <- -log(1 - u) / lambda
-  
-  return(x)
-}
+# Liczba próbek
+N_wykl <- 10000
 
-# Parametry
-n <- 1000  # Liczba próbek
-lambda <- 0.5  # Parametr lambda dla rozkładu wykładniczego
+# Generowanie próbek z rozkładu jednostajnego U(0,1)
+U <- runif(N_wykl)
 
-# Generowanie próbek z rozkładu wykładniczego
-samples <- monte_carlo_exponential(n, lambda)
+# Transformacja odwrotna
+A <- -log(U)
 
-# Test Kołmogorowa-Smirnova
-ks_test <- ks.test(samples, "pexp", lambda)
-print("Test Kołmogorowa-Smirnova:")
-print(ks_test)
-if (ks_test$p.value < 0.05) {
-  print("Hipoteza zerowa jest odrzucana. Dane nie są zgodne z rozkładem wykładniczym.")
-} else {
-  print("Brak podstaw do odrzucenia hipotezy zerowej. Dane są zgodne z rozkładem wykładniczym.")
-}
+# Generowanie próbek z rozkładu wykładniczego za pomocą wbudowanej funkcji rexp
+B <- rexp(N_wykl)
 
-# Wyświetlenie histogramu próbek
-hist(samples, breaks = 30, freq = FALSE, main = "Histogram próbek z rozkładu wykładniczego",
-     xlab = "Wartość próbki", ylab = "Gęstość")
+# Tworzenie wykresów
+par(mfrow = c(1, 2))  # Ustawienie układu wykresów w 1 wierszu i 2 kolumnach
 
-# Dodanie krzywej gęstości prawdopodobieństwa
-curve(dexp(x, lambda), from = 0, to = max(samples), add = TRUE, col = "red", lwd = 2)
+# Histogram dla próbek wygenerowanych za pomocą transformacji odwrotnej
+hist(A, freq = FALSE, main = "Exp from Uniform", xlab = "Wartości", ylab = "Gęstość", col = "lightgray", border = "black")
+curve(dexp(x, rate = 1), col = "red", lwd = 2, add = TRUE)
 
+# Histogram dla próbek wygenerowanych za pomocą wbudowanej funkcji rexp
+hist(B, freq = FALSE, main = "Exp from R", xlab = "Wartości", ylab = "Gęstość", col = "lightgray", border = "black")
+curve(dexp(x, rate = 1), col = "red", lwd = 2, add = TRUE)
 ```
-
