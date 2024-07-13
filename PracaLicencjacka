@@ -1,4 +1,4 @@
-Accept-Reject Method
+Algorytm akceptacji lub odrzucenia
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 # Instalacja i ładowanie pakietu
@@ -15,13 +15,13 @@ normal_pdf <- function(x) {
 # Stała ograniczająca (dobrana eksperymentalnie)
 M_normal <- 2.5
 
-# Funkcja generująca próbkę z dystrybucji ograniczającej (propozycji)
+# Funkcja generująca próbkę z dystrybuanty ograniczającej (propozycji)
 generate_proposal_sample_normal <- function() {
-  return (runif(1, -2, 2))  # Przykładowa dystrybucja ograniczająca
+  return (runif(1, -2, 2))  # Przykładowa funkcja ograniczająca
 }
 
 # Funkcja generująca próbkę z metody accept-rejection
-accept_rejection_normal <- function(n) {
+accept_rejection_normal <- function(n){
   samples_normal <- numeric(n)
   i <- 1
   
@@ -38,12 +38,17 @@ accept_rejection_normal <- function(n) {
   return (samples_normal)
 }
 
-# Wygenerowanie 300 próbek z rozkładu normalnego przy użyciu metody accept-rejection
-set.seed(456)
-samples_normal <- accept_rejection_normal(300)
 ```
 
+
+
+
 ```{r}
+# Wygenerowanie 300 próbek z rozkładu normalnego przy użyciu metody akceptacji lub odrzucenia
+set.seed(456)
+samples_normal <- accept_rejection_normal(300)
+
+
 # Histogram próbek
 hist(samples_normal, breaks = 30, main = "Histogram próbek z rozkładu normalnego z krzywą gęstości", col = "lightblue", border = "black", probability = TRUE)
 # Dodanie krzywej gęstości
@@ -55,9 +60,6 @@ qqline(samples_normal)
 
 ```
 
-
-
-
 ```{r}
 ks.test(samples_normal, "pnorm")
 ```
@@ -65,9 +67,37 @@ ks.test(samples_normal, "pnorm")
 shapiro.test(samples_normal)
 ```
 
-Envelope Accept-Reject Method
+Technika transformacji odwrotnej:
 ```{r}
-# Envelope Accept-Reject Method dla rozkładu normalnego
+# Liczba próbek
+N_wykl <- 10000
+
+# Generowanie próbek z rozkładu jednostajnego U(0,1)
+U <- runif(N_wykl)
+
+# Transformacja odwrotna
+A <- -log(U)
+
+# Generowanie próbek z rozkładu wykładniczego za pomocą wbudowanej funkcji rexp
+B <- rexp(N_wykl)
+
+# Tworzenie wykresów
+par(mfrow = c(1, 2))  # Ustawienie układu wykresów w 1 wierszu i 2 kolumnach
+
+# Histogram dla próbek wygenerowanych za pomocą transformacji odwrotnej
+hist(A, freq = FALSE, main = "Exp from Uniform", xlab = "Wartości", ylab = "Gęstość", col = "lightgray", border = "black")
+curve(dexp(x, rate = 1), col = "red", lwd = 2, add = TRUE)
+
+# Histogram dla próbek wygenerowanych za pomocą wbudowanej funkcji rexp
+hist(B, freq = FALSE, main = "Exp from R", xlab = "Wartości", ylab = "Gęstość", col = "lightgray", border = "black")
+curve(dexp(x, rate = 1), col = "red", lwd = 2, add = TRUE)
+```
+
+
+Algorytm akceptacji lub odrzucenia z funkcją ,,otulającą''
+
+```{r}
+# Metoda akceptacji lub odrzucenia z funkcją ,,otulającą'' dla rozkładu normalnego
 envelope_accept_reject_normal <- function(n) {
   samples <- numeric(n)
   i <- 1
@@ -80,7 +110,7 @@ envelope_accept_reject_normal <- function(n) {
   }
   
   while (i <= n) {
-    x <- rnorm(1)  # Przykładowa dystrybucja propozycji (normalna)
+    x <- rnorm(1)  # Przykładowa dystrybuanta propozycji (normalna)
     u <- runif(1)
     
     if (u <= dnorm(x) / (M * normalpdf(x))) {
@@ -92,7 +122,7 @@ envelope_accept_reject_normal <- function(n) {
   return (samples)
 }
 
-# Wygenerowanie próbek z rozkładu normalnego przy użyciu Envelope Accept-Reject
+# Wygenerowanie próbek z rozkładu normalnego przy użyciu EAR
 samples_envelope_normal <- envelope_accept_reject_normal(1000)
 
 # Histogram próbek z ośią y w skali od 0 do 1
@@ -118,28 +148,4 @@ ks.test(samples_envelope_normal, "pnorm")
 ```
 ```{r}
 shapiro.test(samples_envelope_normal)
-```
-```{r}
-# Liczba próbek
-N_wykl <- 10000
-
-# Generowanie próbek z rozkładu jednostajnego U(0,1)
-U <- runif(N_wykl)
-
-# Transformacja odwrotna
-A <- -log(U)
-
-# Generowanie próbek z rozkładu wykładniczego za pomocą wbudowanej funkcji rexp
-B <- rexp(N_wykl)
-
-# Tworzenie wykresów
-par(mfrow = c(1, 2))  # Ustawienie układu wykresów w 1 wierszu i 2 kolumnach
-
-# Histogram dla próbek wygenerowanych za pomocą transformacji odwrotnej
-hist(A, freq = FALSE, main = "Exp from Uniform", xlab = "Wartości", ylab = "Gęstość", col = "lightgray", border = "black")
-curve(dexp(x, rate = 1), col = "red", lwd = 2, add = TRUE)
-
-# Histogram dla próbek wygenerowanych za pomocą wbudowanej funkcji rexp
-hist(B, freq = FALSE, main = "Exp from R", xlab = "Wartości", ylab = "Gęstość", col = "lightgray", border = "black")
-curve(dexp(x, rate = 1), col = "red", lwd = 2, add = TRUE)
 ```
